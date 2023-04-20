@@ -4,3 +4,6 @@
 tests/output/*
 tests/temp/*
 .DS_Store
+
+.venv
+.pdm.toml

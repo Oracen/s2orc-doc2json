@@ -1,17 +1,11 @@
-from typing import List, Dict, Optional
-import bs4
-from bs4 import BeautifulSoup
 import re
 from collections import defaultdict
+from typing import Dict, List, Optional
 
+import bs4
+from bs4 import BeautifulSoup
 
-SUBSTITUTE_TAGS = {
-    'persName',
-    'orgName',
-    'publicationStmt',
-    'titleStmt',
-    'biblScope'
-}
+SUBSTITUTE_TAGS = {"persName", "orgName", "publicationStmt", "titleStmt", "biblScope"}
 
 
 def clean_tags(el: bs4.element.Tag):
@@ -40,8 +34,7 @@ def get_title_from_grobid_xml(raw_xml: BeautifulSoup) -> str:
     :return:
     """
     for title_entry in raw_xml.find_all("title"):
-        if title_entry.has_attr("level") \
-                and title_entry["level"] == "a":
+        if title_entry.has_attr("level") and title_entry["level"] == "a":
             return title_entry.text
     try:
         return raw_xml.title.text
@@ -101,12 +94,7 @@ def get_author_names_from_grobid_xml(raw_xml: BeautifulSoup) -> List[Dict[str, s
         if len(suffix) >= 1:
             suffix = " ".join([suffix.text for suffix in suffixes])
 
-        names_dict = {
-            "first": first,
-            "middle": middle,
-            "last": last,
-            "suffix": suffix
-        }
+        names_dict = {"first": first, "middle": middle, "last": last, "suffix": suffix}
 
         names.append(names_dict)
     return names
@@ -139,7 +127,7 @@ def get_affiliation_from_grobid_xml(raw_xml: BeautifulSoup) -> Dict:
             return {
                 "laboratory": laboratory_name,
                 "institution": institution_name,
-                "location": location_dict
+                "location": location_dict,
             }
 
     return {}
@@ -167,7 +155,6 @@ def get_author_data_from_grobid_xml(raw_xml: BeautifulSoup) -> List[Dict]:
     authors = []
 
     for author in raw_xml.find_all("author"):
-
         first = ""
         middle = []
         last = ""
@@ -215,7 +202,7 @@ def get_author_data_from_grobid_xml(raw_xml: BeautifulSoup) -> List[Dict]:
             "last": last,
             "suffix": suffix,
             "affiliation": affiliation,
-            "email": email
+            "email": email,
         }
 
         authors.append(author_dict)
@@ -251,9 +238,11 @@ def get_venue_from_grobid_xml(raw_xml: BeautifulSoup, title_text: str) -> str:
     keep_types = ["j", "m", "s"]
     # get all titles of the anove types
     for title_entry in raw_xml.find_all("title"):
-        if title_entry.has_attr("level") \
-                and title_entry["level"] in keep_types \
-                and title_entry.text != title_text:
+        if (
+            title_entry.has_attr("level")
+            and title_entry["level"] in keep_types
+            and title_entry.text != title_text
+        ):
             title_names.append((title_entry["level"], title_entry.text))
     # return the title name that most likely belongs to the journal or publication venue
     if title_names:
@@ -293,11 +282,15 @@ def get_pages_from_grobid_xml(raw_xml: BeautifulSoup) -> str:
     :return:
     """
     for bibl_entry in raw_xml.find_all("biblscope"):
-        if bibl_entry.has_attr("unit") and bibl_entry["unit"] == "page" and bibl_entry.has_attr("from"):
+        if (
+            bibl_entry.has_attr("unit")
+            and bibl_entry["unit"] == "page"
+            and bibl_entry.has_attr("from")
+        ):
             from_page = bibl_entry["from"]
             if bibl_entry.has_attr("to"):
                 to_page = bibl_entry["to"]
-                return f'{from_page}--{to_page}'
+                return f"{from_page}--{to_page}"
             else:
                 return from_page
     return ""
@@ -338,10 +331,12 @@ def get_publication_datetime_from_grobid_xml(raw_xml: BeautifulSoup) -> str:
     """
     if raw_xml.publicationStmt:
         for child in raw_xml.publicationstmt:
-            if child.name == "date" \
-                    and child.has_attr("type") \
-                    and child["type"] == "published" \
-                    and child.has_attr("when"):
+            if (
+                child.name == "date"
+                and child.has_attr("type")
+                and child["type"] == "published"
+                and child.has_attr("when")
+            ):
                 return child["when"]
     return ""
 
@@ -355,17 +350,17 @@ def parse_bib_entry(bib_entry: BeautifulSoup) -> Dict:
     clean_tags(bib_entry)
     title = get_title_from_grobid_xml(bib_entry)
     return {
-        'ref_id': bib_entry.attrs.get("xml:id", None),
-        'title': title,
-        'authors': get_author_names_from_grobid_xml(bib_entry),
-        'year': get_year_from_grobid_xml(bib_entry),
-        'venue': get_venue_from_grobid_xml(bib_entry, title),
-        'volume': get_volume_from_grobid_xml(bib_entry),
-        'issue': get_issue_from_grobid_xml(bib_entry),
-        'pages': get_pages_from_grobid_xml(bib_entry),
-        'other_ids': get_other_ids_from_grobid_xml(bib_entry),
-        'raw_text': get_raw_bib_text_from_grobid_xml(bib_entry),
-        'urls': []
+        "ref_id": bib_entry.attrs.get("xml:id", None),
+        "title": title,
+        "authors": get_author_names_from_grobid_xml(bib_entry),
+        "year": get_year_from_grobid_xml(bib_entry),
+        "venue": get_venue_from_grobid_xml(bib_entry, title),
+        "volume": get_volume_from_grobid_xml(bib_entry),
+        "issue": get_issue_from_grobid_xml(bib_entry),
+        "pages": get_pages_from_grobid_xml(bib_entry),
+        "other_ids": get_other_ids_from_grobid_xml(bib_entry),
+        "raw_text": get_raw_bib_text_from_grobid_xml(bib_entry),
+        "urls": [],
     }
 
 
@@ -383,6 +378,6 @@ def extract_paper_metadata_from_grobid_xml(tag: bs4.element.Tag) -> Dict:
     paper_metadata = {
         "title": tag.titlestmt.title.text,
         "authors": get_author_data_from_grobid_xml(tag),
-        "year": get_publication_datetime_from_grobid_xml(tag)
+        "year": get_publication_datetime_from_grobid_xml(tag),
     }
     return paper_metadata

@@ -6,7 +6,7 @@ def replace_refspans(
     full_string: str,
     pre_padding: str = "",
     post_padding: str = "",
-    btwn_padding: str = ", "
+    btwn_padding: str = ", ",
 ) -> str:
     """
     For each span within the full string, replace that span with new text
@@ -18,7 +18,9 @@ def replace_refspans(
     :return:
     """
     # assert all spans are equal to full_text span
-    assert all([full_string[start:end] == span for start, end, span, _ in spans_to_replace])
+    assert all(
+        [full_string[start:end] == span for start, end, span, _ in spans_to_replace]
+    )
 
     # assert none of the spans start with the same start ind
     start_inds = [rep[0] for rep in spans_to_replace]
@@ -36,7 +38,9 @@ def replace_refspans(
             continue
 
         # compute shift amount
-        shift_amount = len(new_string) - len(span) + len(pre_padding) + len(post_padding)
+        shift_amount = (
+            len(new_string) - len(span) + len(pre_padding) + len(post_padding)
+        )
 
         # shift remaining appropriately
         for ind in range(i + 1, len(spans_to_replace)):
@@ -74,8 +78,7 @@ def replace_refspans(
 
 
 def sub_spans_and_update_indices(
-    spans_to_replace: List[Tuple[int, int, str, str]],
-    full_string: str
+    spans_to_replace: List[Tuple[int, int, str, str]], full_string: str
 ) -> Tuple[str, List]:
     """
     Replace all spans and recompute indices
@@ -87,7 +90,9 @@ def sub_spans_and_update_indices(
     # TODO: check all spans well-formed
 
     # assert all spans are equal to full_text span
-    assert all([full_string[start:end] == token for start, end, token, _ in spans_to_replace])
+    assert all(
+        [full_string[start:end] == token for start, end, token, _ in spans_to_replace]
+    )
 
     # assert none of the spans start with the same start ind
     start_inds = [rep[0] for rep in spans_to_replace]
@@ -97,19 +102,23 @@ def sub_spans_and_update_indices(
     spans_to_replace.sort(key=lambda x: x[0])
 
     # compute offsets for each span
-    new_spans = [[start, end, token, surface, 0] for start, end, token, surface in spans_to_replace]
+    new_spans = [
+        [start, end, token, surface, 0]
+        for start, end, token, surface in spans_to_replace
+    ]
     for i, entry in enumerate(spans_to_replace):
         start, end, token, surface = entry
         new_end = start + len(surface)
         offset = new_end - end
         new_spans[i][1] += offset
-        for new_span_entry in new_spans[i+1:]:
+        for new_span_entry in new_spans[i + 1 :]:
             new_span_entry[4] += offset
 
     # generate new text and create final spans
     new_text = replace_refspans(spans_to_replace, full_string, btwn_padding="")
-    new_spans = [(start + offset, end + offset, token, surface) for start, end, token, surface, offset in new_spans]
+    new_spans = [
+        (start + offset, end + offset, token, surface)
+        for start, end, token, surface, offset in new_spans
+    ]
 
     return new_text, new_spans
-
-

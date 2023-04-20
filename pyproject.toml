@@ -1,0 +1,23 @@
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+dev = [
+    "black>=23.3.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+]
+
+[project]
+name = "s2orc-doc2json"
+version = "0.1.0"
+description = "A fork of Allen Institute for AI parser"
+authors = [
+    {name = "Alex Stenlake", email = "alex.stenlake@gmail.com"},
+]
+dependencies = ["tqdm", "beautifulsoup4==4.7.1", "boto3==1.9.147", "requests==2.21.0", "Flask==1.0.2", "lxml", "python-magic==0.4.18", "latex2mathml==2.16.2", "itsdangerous==2.0.1"]
+requires-python = ">=3.9"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-pep517>=1.0.0"]
+build-backend = "pdm.pep517.api"
